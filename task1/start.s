@@ -195,7 +195,7 @@ read_loop:
     sub cl, 'A'
     add al, cl
     cmp al, 'z'
-    jle update_char
+    jbe update_char
     sub al, 26
     jmp update_char
 
@@ -204,7 +204,7 @@ upper:
     sub cl, 'A'
     add al, cl
     cmp al, 'Z'
-    jle update_char
+    jbe update_char
     sub al, 26
 
 update_char:
