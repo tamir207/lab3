@@ -1,1 +1,4 @@
 ./task1 hello world 123
+./task1 +VBBBB -iinput.txt -ooutput.txt
+
+cp main.c /tmp/lab3/ && cd /tmp/lab3/ && make clean && make && ./task2
