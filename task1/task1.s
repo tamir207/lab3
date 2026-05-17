@@ -9,6 +9,7 @@ section .data
 
 section .rodata
     newline db 10
+    error_message db "cannot open file", 10
 
 section .bss
     buffer resb 1
@@ -30,17 +31,68 @@ print_loop:
 
     mov al, byte [ebx]
     cmp al, '+'
-    jne print
-    mov al, byte [ebx+1]
-    cmp al, 'V'
-    jne print
+    je plus
+    cmp al, '-'
+    je minus
+    jmp print
 
+plus:
+    cmp byte [ebx+1], 'V'
+    jne print
     mov eax, ebx
     add eax, 2
     cmp byte [eax], 0
     je print
     mov dword [Encoder], eax
     mov dword [EncoderCurrPointer], eax
+    jmp print
+
+minus:
+    cmp byte [ebx+1], 'i'
+    je handle_infile
+    cmp byte [ebx+1], 'o'
+    je handle_outfile
+    jmp print
+
+handle_infile:
+    push ebx
+    add ebx, 2
+    mov eax, 5
+    mov ecx, 0
+    mov edx, 0
+    int 0x80
+    pop ebx
+
+    cmp eax, 0
+    jl file_error
+    mov dword [Infile], eax
+    jmp print
+
+handle_outfile:
+    push ebx
+    add ebx, 2
+    mov eax, 5
+    mov ecx, 577
+    mov edx, 420
+    int 0x80
+    pop ebx
+
+    cmp eax, 0
+    jl file_error
+    mov dword [Outfile], eax
+    jmp print
+
+file_error:
+    mov eax, 4
+    mov ebx, 2
+    mov ecx, error_message
+    mov edx, 17
+    int 0x80
+
+    popad
+    mov eax, 1
+    mov ebx, 0x55
+    int 0x80
 
 print:
     push ebx
