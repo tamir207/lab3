@@ -1,0 +1,16 @@
+{
+  "name": "ESPL Container BY Marae Bshoty",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+      ]
+    }
+  },
+  "runArgs": ["--platform=linux/amd64"],
+  "remoteUser": "vscode"
+}
